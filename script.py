@@ -3,7 +3,7 @@ from summary import getInsideCircle, getOutsideCircles
 from os.path import join, dirname
 from os import getcwd
 from sys import argv
-from skimage.io import imread
+from cv2 import imread
 import pickle
 import numpy as np
 
@@ -35,7 +35,7 @@ def getData(img):
 
 def main():
     filepath = getFilepath()
-    img = imread(filepath)
+    img = np.flip(imread(filepath), -1)
     data = getData(img)
     model = pickle.load(open(join(dirname(__file__),'model.p'), 'rb'))
     print(np.average(model.predict(data)))
