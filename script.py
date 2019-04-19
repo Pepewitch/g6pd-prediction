@@ -6,7 +6,8 @@ from sys import argv
 from cv2 import imread
 # import pickle
 import numpy as np
-from joblib import load
+# from joblib import load
+import model
 
 def getFilepath():
     if(len(argv) == 1):
@@ -39,7 +40,7 @@ def main():
     img = np.flip(imread(filepath), -1)
     data = getData(img)
     # model = pickle.load(open(join(dirname(__file__),'model.p'), 'rb'))
-    model = load(join(dirname(__file__), 'model.joblib'))
+    # model = load(join(dirname(__file__), 'model.joblib'))
     print(np.average(model.predict(data)))
 
 if __name__ == '__main__':
