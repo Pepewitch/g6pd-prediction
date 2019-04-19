@@ -39,7 +39,7 @@ def main():
     img = np.flip(imread(filepath), -1)
     data = getData(img)
     # model = pickle.load(open(join(dirname(__file__),'model.p'), 'rb'))
-    model = load(open(join(dirname(__file__), 'model.joblib')))
+    model = load(join(dirname(__file__), 'model.joblib'))
     print(np.average(model.predict(data)))
 
 if __name__ == '__main__':
