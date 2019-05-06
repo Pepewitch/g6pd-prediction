@@ -5,7 +5,7 @@ def findRect(sample):
     _, contour , _ = cv2.findContours(sample, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if len(contour) == 0:
         y, x = sample.shape
-        return np.float32([[0,0],[x-1,0],[x-1,y-1],[0,y-1])
+        return np.float32([[0,0],[x-1,0],[x-1,y-1],[0,y-1]])
     def getArea(attr):
         return attr[2] * attr[3]
     max_area_contour = max(contour , key=lambda c : getArea(cv2.boundingRect(c)))
