@@ -1,12 +1,18 @@
 
 import cv2
-from crop import getCropRect
+from crop import getCropRect, findCircle
 import numpy as np
+
+def drawCircles(img):
+    circles = findCircle(img)
+    for x ,y ,r in circles:
+        cv2.circle(img , (int(x),int(y)) , int(r) , (0,0,255) , 2)
 
 def processFrame(bgrFrame):
     rgb = cv2.cvtColor(bgrFrame, cv2.COLOR_BGR2RGB)
     cropRect, coordinate = getCropRect(rgb)
     cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
+    drawCircles(cropRect)
     bgr = cv2.cvtColor(cropRect, cv2.COLOR_RGB2BGR)
     return bgr
 
