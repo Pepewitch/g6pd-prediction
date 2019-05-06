@@ -44,7 +44,9 @@ def processFrame(bgrFrame):
     cropRect, coordinate = getCropRect(rgb)
     circles = findCircle(cropRect)
     data = getData(cropRect, circles)
-    ac = np.average(model.predict(data))
+    ac = 0
+    if len(data) > 0:
+        ac = np.average(model.predict(data))
     cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
     drawCircles(cropRect, circles)
     drawText(cropRect, 'Ac/HB: {}'.format(math.floor(ac * 1000)/1000))
