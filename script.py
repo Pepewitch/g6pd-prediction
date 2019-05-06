@@ -19,7 +19,7 @@ def getFilepath():
         return join(getcwd() , filename)
 
 def getData(img):
-    crop = getCropRect(img)
+    crop, _ = getCropRect(img)
     circles = findCircle(crop)
     outside = getOutsideCircles(crop, circles)
     output = []

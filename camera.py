@@ -1,27 +1,29 @@
 
 import cv2
 from crop import getCropRect
+import numpy as np
 
 def processFrame(bgrFrame):
     rgb = cv2.cvtColor(bgrFrame, cv2.COLOR_BGR2RGB)
-    cropRect = getCropRect(rgb)
+    cropRect, coordinate = getCropRect(rgb)
+    cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
     bgr = cv2.cvtColor(cropRect, cv2.COLOR_RGB2BGR)
     return bgr
 
 def show(before, after):
-    cv2.imshow('crop', after)
-    cv2.imshow('real', before)
+    cv2.imshow('after', after)
+    cv2.imshow('before', before)
 
-def useCvCamera():
+def useCvCamera(process):
     cap = cv2.VideoCapture(0)
 
     while(True):
         # Capture frame-by-frame
         ret, frame = cap.read()
         # Our operations on the frame come here
-        bgr = processFrame(frame)
+        after = process(frame)
         # Display the resulting frame
-        show(frame, bgr)
+        show(frame, after)
         
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
@@ -31,7 +33,7 @@ def useCvCamera():
     cap.release()
     cv2.destroyAllWindows()
 
-def usePiCamera():
+def usePiCamera(process):
     # import the necessary packages
     from picamera.array import PiRGBArray
     from picamera import PiCamera
@@ -51,9 +53,9 @@ def usePiCamera():
         # grab the raw NumPy array representing the image, then initialize the timestamp
         # and occupied/unoccupied text
         image = frame.array
-        bgr = processFrame(image)
+        after = process(image)
         # show the frame
-        show(image, bgr)
+        show(image, after)
         # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
     
@@ -62,11 +64,11 @@ def usePiCamera():
         if key == ord("q"):
             break
 
-def openCamera():
+def openCamera(process):
     try:
-        usePiCamera()
+        usePiCamera(process)
     except ModuleNotFoundError as e:
-        useCvCamera()
+        useCvCamera(process)
 
 if __name__ == "__main__":
-    openCamera()
+    openCamera(processFrame)

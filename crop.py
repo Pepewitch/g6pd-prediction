@@ -17,11 +17,11 @@ def findRect(sample):
     polyTopright = min(poly, key=lambda i: np.sqrt(np.sum((topright - i)**2)))
     polyBottomleft = min(poly, key=lambda i: np.sqrt(np.sum((bottomleft - i)**2)))
     polyBottomright = min(poly, key=lambda i: np.sqrt(np.sum((bottomright - i)**2)))
-    return np.float32([polyTopleft,polyTopright,polyBottomleft,polyBottomright])
+    return np.float32([polyTopleft,polyTopright,polyBottomright,polyBottomleft])
 
 def getCropRect(sample):
     '''
-    getCropRect(sample) -> rect
+    getCropRect(sample) -> rect, coordinate
     
     @param sample, 3 channels numpy array image
     @return rect, 3 channels numpy array image which is cropped middle rectangle
@@ -31,10 +31,10 @@ def getCropRect(sample):
     crop[crop >= 40] = 255
     crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
     pts1 = findRect(crop)
-    pts2 = np.float32([[0,0],[700,0],[0,250],[700,250]])
+    pts2 = np.float32([[0,0],[700,0],[700,250],[0,250]])
     M = cv2.getPerspectiveTransform(pts1,pts2)
     dst = cv2.warpPerspective(sample,M,(700,250))
-    return dst[25:225 , 50:650]
+    return dst[25:225 , 50:650], pts1
 
 def findCircle(crop):
     '''Finding circle function
