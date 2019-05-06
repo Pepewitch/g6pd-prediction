@@ -1,18 +1,8 @@
 import cv2
 import numpy as np
 
-def getCropRect(sample):
-    '''
-    getCropRect(sample) -> rect
-    
-    @param sample, 3 channels numpy array image
-    @return rect, 3 channels numpy array image which is cropped middle rectangle
-    '''
-    crop = cv2.cvtColor(sample, cv2.COLOR_RGB2GRAY)
-    crop[crop < 40] = 0
-    crop[crop >= 40] = 255
-    crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
-    _, contour , _ = cv2.findContours(crop, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+def findRect(sample):
+    _, contour , _ = cv2.findContours(sample, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     def getArea(attr):
         return attr[2] * attr[3]
     max_area_contour = max(contour , key=lambda c : getArea(cv2.boundingRect(c)))
@@ -27,7 +17,20 @@ def getCropRect(sample):
     polyTopright = min(poly, key=lambda i: np.sqrt(np.sum((topright - i)**2)))
     polyBottomleft = min(poly, key=lambda i: np.sqrt(np.sum((bottomleft - i)**2)))
     polyBottomright = min(poly, key=lambda i: np.sqrt(np.sum((bottomright - i)**2)))
-    pts1 = np.float32([polyTopleft,polyTopright,polyBottomleft,polyBottomright])
+    return np.float32([polyTopleft,polyTopright,polyBottomleft,polyBottomright])
+
+def getCropRect(sample):
+    '''
+    getCropRect(sample) -> rect
+    
+    @param sample, 3 channels numpy array image
+    @return rect, 3 channels numpy array image which is cropped middle rectangle
+    '''
+    crop = cv2.cvtColor(sample, cv2.COLOR_RGB2GRAY)
+    crop[crop < 40] = 0
+    crop[crop >= 40] = 255
+    crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
+    pts1 = findRect(crop)
     pts2 = np.float32([[0,0],[700,0],[0,250],[700,250]])
     M = cv2.getPerspectiveTransform(pts1,pts2)
     dst = cv2.warpPerspective(sample,M,(700,250))
