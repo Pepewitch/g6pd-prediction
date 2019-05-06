@@ -53,7 +53,7 @@ def usePiCamera():
         image = frame.array
         bgr = processFrame(image)
         # show the frame
-        show()
+        show(image, bgr)
         # clear the stream in preparation for the next frame
         rawCapture.truncate(0)
     
