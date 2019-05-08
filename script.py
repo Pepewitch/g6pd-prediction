@@ -11,25 +11,53 @@ from camera import openCamera
 import math
 import argparse
 
+selected_method = 3
+isRed = False
+
 def getFilepath(filename):
     if filename[0] == '/':
         return filename
     else:
         return join(getcwd() , filename)
 
-def getData(crop, circles):
-    outside = getOutsideCircles(crop, circles)
-    output = []
-    for circle in circles:
-        inside = getInsideCircle(crop, circle)
-        output.append([
+def getFeature(inside, outside, method):
+    if method == 1:
+        return [
+            inside['avg_r'],
+            inside['avg_g'],
+            inside['avg_b'],
+            inside['std_r'],
+            inside['std_g'],
+            inside['std_b'],
+            outside['avg_r'],
+            outside['avg_g'],
+            outside['avg_b'],
+            outside['std_r'],
+            outside['std_g'],
+            outside['std_b']
+        ]
+    elif method == 2:
+        return [
             inside['avg_r'],
             inside['avg_g'],
             inside['avg_b'],
             outside['avg_r'],
             outside['avg_g'],
             outside['avg_b'],
-        ])
+        ]
+    else:
+        return [
+            inside['avg_r'] - outside['avg_r'],
+            inside['avg_g'] - outside['avg_g'],
+            inside['avg_b'] - outside['avg_b'],
+        ]
+
+def getData(crop, circles, method=selected_method):
+    outside = getOutsideCircles(crop, circles)
+    output = []
+    for circle in circles:
+        inside = getInsideCircle(crop, circle)
+        output.append(getFeature(inside, outside, method))
     return output
 
 def drawCircles(img, circles):
@@ -46,7 +74,7 @@ def processFrame(bgrFrame):
     data = getData(cropRect, circles)
     ac = 0
     if len(data) > 0:
-        ac = np.average(model.predict(data))
+        ac = np.average(model.predict(data, selected_method, isRed))
     cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
     drawCircles(cropRect, circles)
     drawText(cropRect, 'Ac/Hb: {}'.format(math.floor(ac * 1000)/1000))
@@ -55,15 +83,20 @@ def processFrame(bgrFrame):
 
 def main():
     parser = argparse.ArgumentParser(description="G6PD Prediction script working with a real-time camera or an image file.\nDefault is using the camera.")
+    parser.add_argument('-r', '--red', action='store_true', help='Applying red light.')
     parser.add_argument('-i', '--image', type=str, help='Image path to be predicted.')
+    parser.add_argument('-m', '--method', type=int, help='Preprocessing method.\n1 is using avg and std of both background and foreground.\n2 is using avg of both background and foreground.\n3 is using avg of foreground - avg of background.')
     args = parser.parse_args(argv[1:])
+    isRed = args.red
+    if args.method is not None:
+        selected_method = args.method
     if args.image is not None:
         filepath = getFilepath(args.image)
         img = np.flip(imread(filepath), -1)
         crop, _ = getCropRect(img)
         circles = findCircle(crop)
         data = getData(crop, circles)
-        print(np.average(model.predict(data)))
+        print(np.average(model.predict(data, selected_method, isRed)))
     else:
         openCamera(processFrame)
 
