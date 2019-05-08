@@ -9,9 +9,9 @@ import numpy as np
 import model
 from camera import openCamera
 import math
+import argparse
 
-def getFilepath():
-    filename = argv[1]
+def getFilepath(filename):
     if filename[0] == '/':
         return filename
     else:
@@ -49,13 +49,16 @@ def processFrame(bgrFrame):
         ac = np.average(model.predict(data))
     cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
     drawCircles(cropRect, circles)
-    drawText(cropRect, 'Ac/HB: {}'.format(math.floor(ac * 1000)/1000))
+    drawText(cropRect, 'Ac/Hb: {}'.format(math.floor(ac * 1000)/1000))
     bgr = cv2.cvtColor(cropRect, cv2.COLOR_RGB2BGR)
     return bgr
 
 def main():
-    if len(argv) > 1:
-        filepath = getFilepath()
+    parser = argparse.ArgumentParser(description="G6PD Prediction script working with a real-time camera or an image file.\nDefault is using the camera.")
+    parser.add_argument('-i', '--image', type=str, help='Image path to be predicted.')
+    args = parser.parse_args(argv[1:])
+    if args.image is not None:
+        filepath = getFilepath(args.image)
         img = np.flip(imread(filepath), -1)
         crop, _ = getCropRect(img)
         circles = findCircle(crop)
