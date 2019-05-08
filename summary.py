@@ -50,7 +50,7 @@ def getOutsideCircles(im , circles , extend=1.2 , border=(40,0,0,0) , debug=Fals
         'std_b': np.std(selected_b),
     }
 
-def getPixelSummary(label, img_dict , imageTransform=None , debug=False):
+def getPixelSummary(img_dict, label, imageTransform=None, debug=False):
     label_dict = label.to_dict()['Ac/Hb']
     summary = {'name': [] , 'label': []}
     for j in ['r','g','b']:

@@ -17,7 +17,7 @@ weight = {
     },
     'normal': {
         1: {
-            'coef': np.array([-2.03801701e-01,  2.20818016e-01, -1.44153777e-02,  1.99054831e-01,9.05433117e-01, -6.72979009e-01,  6.98915975e-02, -1.70462925e-01,3.00825615e-04, -9.11066915e-01,  6.16036109e-01, -3.64288907e-01])
+            'coef': np.array([-2.03801701e-01,  2.20818016e-01, -1.44153777e-02,  1.99054831e-01,9.05433117e-01, -6.72979009e-01,  6.98915975e-02, -1.70462925e-01,3.00825615e-04, -9.11066915e-01,  6.16036109e-01, -3.64288907e-01]),
             'intercept': 8.959067512157144
         },
         2: {
@@ -33,7 +33,7 @@ weight = {
 
 def predict(data, method, isRed):
     coef = weight['red' if isRed else 'normal'][method]['coef']
-    intercept =  = weight['red' if isRed else 'normal'][method]['intercept']
+    intercept = weight['red' if isRed else 'normal'][method]['intercept']
     if(type(data) != np.ndarray):
         data = np.array(data)
     return data.dot(coef) + intercept
