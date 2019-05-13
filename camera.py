@@ -70,11 +70,14 @@ def usePiCamera(process):
         if key == ord("q"):
             break
 
-def openCamera(process):
-    try:
-        usePiCamera(process)
-    except ModuleNotFoundError as e:
-        useCvCamera(process)
+def openCamera(process, piCamera=False):
+	if piCamera:
+		try:
+			usePiCamera(process)
+		except ModuleNotFoundError as e:
+			useCvCamera(process)
+	else:
+		useCvCamera(process)
 
 if __name__ == "__main__":
     openCamera(processFrame)
