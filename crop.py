@@ -1,5 +1,17 @@
 import cv2
 import numpy as np
+import json
+from os.path import dirname, join, realpath
+
+config = json.load(open(join(dirname(realpath(__file__)), 'config.json')))
+ratio = config['ratio']
+
+if ratio[0] > ratio[1]:
+    height = 700
+    width = ratio[1] * 700 // ratio[0]
+else:
+    width = 700
+    height = ratio[0] * 700 // ratio[1]
 
 def findRect(sample):
     _, contour , _ = cv2.findContours(sample, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -34,10 +46,10 @@ def getCropRect(sample):
     crop[crop >= 40] = 255
     crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
     pts1 = findRect(crop)
-    pts2 = np.float32([[0,0],[700,0],[700,250],[0,250]])
+    pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
     M = cv2.getPerspectiveTransform(pts1,pts2)
-    dst = cv2.warpPerspective(sample,M,(700,250))
-    return dst[25:225 , 50:650], pts1
+    dst = cv2.warpPerspective(sample,M,(width,height))
+    return dst[25:height-25 , 50:width-50], pts1
 
 def findCircle(crop):
     '''Finding circle function
@@ -47,7 +59,8 @@ def findCircle(crop):
     @return set, a set of (x,y,r) from the input image
     '''
     hough_set = set()
-    for index , rang in enumerate([(0,200) , (200,400) , (400,600)]):
+    circle_width = (width-100)//3
+    for index , rang in enumerate([(0,circle_width) , (circle_width,circle_width*2) , (circle_width*2,circle_width*3)]):
         p1 = crop[:,rang[0]:rang[1]]
         hough = cv2.HoughCircles(cv2.cvtColor(p1 , cv2.COLOR_RGB2GRAY) , cv2.cv2.HOUGH_GRADIENT, 2, 400,
                           param1=25,
