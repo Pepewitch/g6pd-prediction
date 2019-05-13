@@ -1,10 +1,6 @@
 import cv2
 import numpy as np
-import json
-from os.path import dirname, join, realpath
-
-config = json.load(open(join(dirname(realpath(__file__)), 'config.json')))
-ratio = config['ratio']
+from config import ratio
 
 if ratio[0] > ratio[1]:
     height = 700

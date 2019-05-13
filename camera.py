@@ -2,6 +2,9 @@
 import cv2
 from crop import getCropRect, findCircle
 import numpy as np
+from config import segment_directory, image_directory
+from os import listdir, mkdir
+from os.path import join, isdir
 
 def drawCircles(img):
     circles = findCircle(img)
@@ -15,6 +18,18 @@ def processFrame(bgrFrame):
     drawCircles(cropRect)
     bgr = cv2.cvtColor(cropRect, cv2.COLOR_RGB2BGR)
     return bgr
+
+def saveImage(before, after):
+    if not isdir(image_directory):
+        mkdir(image_directory)
+    if not isdir(segment_directory):
+        mkdir(segment_directory)
+    image_list = list(filter(lambda name: '.ppm' in name, listdir(image_directory)))
+    segment_list = list(filter(lambda name: '.ppm' in name, listdir(segment_directory)))
+    next_image = 0 if len(image_list) == 0 else int(max(image_list, key=lambda name: int(name.split('.')[0])).split('.')[0]) + 1
+    next_segment = 0 if len(segment_list) == 0 else int(max(segment_list, key=lambda name: int(name.split('.')[0])).split('.')[0]) + 1
+    cv2.imwrite(join(image_directory, '{}.ppm'.format(next_image)), before)
+    cv2.imwrite(join(segment_directory, '{}.ppm'.format(next_segment)), after)
 
 def show(before, after):
     cv2.imshow('after', after)
@@ -34,6 +49,8 @@ def useCvCamera(process):
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
+        if key == ord("c"):
+            saveImage(frame,after)
 
     # When everything done, release the capture
     cap.release()
@@ -69,6 +86,9 @@ def usePiCamera(process):
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
+        if key == ord("c"):
+            saveImage(image,after)
+        
 
 def openCamera(process, piCamera=False):
 	if piCamera:

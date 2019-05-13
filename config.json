@@ -1,3 +1,5 @@
 {
-  "ratio": [25, 65]
+  "ratio": [20, 65],
+  "image_directory": "image",
+  "segment_directory": "segment"
 }
