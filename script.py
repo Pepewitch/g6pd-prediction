@@ -90,6 +90,7 @@ def main():
     args = parser.parse_args(argv[1:])
     isRed = args.red
     piCamera = args.pi_camera
+    selected_method = 3
     if args.method is not None:
         selected_method = args.method
     if args.image is not None:

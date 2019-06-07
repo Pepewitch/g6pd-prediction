@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from config import ratio
+import os
 
 if ratio[0] > ratio[1]:
     height = 700
@@ -38,8 +39,11 @@ def getCropRect(sample):
     @return rect, 3 channels numpy array image which is cropped middle rectangle
     '''
     crop = cv2.cvtColor(sample, cv2.COLOR_RGB2GRAY)
-    crop[crop < 40] = 0
-    crop[crop >= 40] = 255
+    _, crop = cv2.threshold(
+        cv2.GaussianBlur(
+            crop,(11,11),0
+        ),0,255,cv2.THRESH_BINARY_INV +cv2.THRESH_OTSU
+    )
     crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
     pts1 = findRect(crop)
     pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
@@ -67,3 +71,11 @@ def findCircle(crop):
             for x , y , r in hough[0,:]:
                 hough_set.add((x+rang[0],y,r))
     return hough_set
+
+# def findCircle2(image):
+#     hough = cv2.HoughCircles(cv2.cvtColor(image , cv2.COLOR_BGR2GRAY) , cv2.cv2.HOUGH_GRADIENT, 2, max(image.shape)//20,
+#                           param1=25,
+#                           param2=40,
+#                           minRadius=40,
+#                           maxRadius=60)
+#     return set([(x,y,r) for (x,y,r) in hough[0,:]] if hough is not None else [])
