@@ -5,6 +5,7 @@ import numpy as np
 from config import segment_directory, image_directory
 from os import listdir, mkdir
 from os.path import join, isdir
+from copy import deepcopy
 
 def drawCircles(img):
     circles = findCircle(img)
@@ -41,6 +42,7 @@ def useCvCamera(process):
     while(True):
         # Capture frame-by-frame
         ret, frame = cap.read()
+        saved = deepcopy(frame)
         # Our operations on the frame come here
         after = process(frame)
         # Display the resulting frame
@@ -50,7 +52,7 @@ def useCvCamera(process):
         if key == ord('q'):
             break
         if key == ord("c"):
-            saveImage(frame,after)
+            saveImage(saved,after)
 
     # When everything done, release the capture
     cap.release()
@@ -75,6 +77,7 @@ def usePiCamera(process):
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # grab the raw NumPy array representing the image, then initialize the timestamp
         # and occupied/unoccupied text
+
         image = frame.array
         after = process(image)
         # show the frame

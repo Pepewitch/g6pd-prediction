@@ -74,8 +74,8 @@ def findCircle(crop):
 
 def findCircle2(image):
     hough = cv2.HoughCircles(cv2.cvtColor(image , cv2.COLOR_BGR2GRAY) , cv2.cv2.HOUGH_GRADIENT, 2, max(image.shape)//20,
-                          param1=25,
-                          param2=40,
-                          minRadius=40,
+                          param1=50,
+                          param2=50,
+                          minRadius=35,
                           maxRadius=60)
     return set([(x,y,r) for (x,y,r) in hough[0,:]] if hough is not None else [])
