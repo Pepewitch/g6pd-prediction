@@ -5,21 +5,22 @@ import os
 import math
 
 def validateCircle(image):
-    hough = cv2.HoughCircles(image, 
-                             cv2.cv2.HOUGH_GRADIENT, 
-                             2, 
-                             400, 
-                             param1=25, 
-                             param2=15, 
-                             minRadius=math.floor(image.shape[0] * 0.4), 
-                             maxRadius=math.ceil(image.shape[0] * 0.6))
-    if hough is not None:
-        min_length = 0.4 * image.shape[0]
-        max_length = 0.6 * image.shape[0]
-        for x , y , r in hough[0,:]:
-            if r > min_length and r < max_length and x > min_length and x < max_length and y > min_length and y < max_length:
-                return True
-    return False
+    return True
+    # hough = cv2.HoughCircles(image, 
+    #                          cv2.cv2.HOUGH_GRADIENT, 
+    #                          2, 
+    #                          400, 
+    #                          param1=25, 
+    #                          param2=15, 
+    #                          minRadius=math.floor(image.shape[0] * 0.4), 
+    #                          maxRadius=math.ceil(image.shape[0] * 0.6))
+    # if hough is not None:
+    #     min_length = 0.4 * image.shape[0]
+    #     max_length = 0.6 * image.shape[0]
+    #     for x , y , r in hough[0,:]:
+    #         if r > min_length and r < max_length and x > min_length and x < max_length and y > min_length and y < max_length:
+    #             return True
+    # return False
 
 def findCircles(image, circularity_threshold = 0.95, r_weight = 0.33, g_weight = 0.33, b_weight = 0.33):
     '''
