@@ -2,80 +2,46 @@ import cv2
 import numpy as np
 from config import ratio
 import os
+import math
 
-if ratio[0] > ratio[1]:
-    height = 700
-    width = ratio[1] * 700 // ratio[0]
-else:
-    width = 700
-    height = ratio[0] * 700 // ratio[1]
+def validateCircle(image):
+    hough = cv2.HoughCircles(image, 
+                             cv2.cv2.HOUGH_GRADIENT, 
+                             2, 
+                             400, 
+                             param1=25, 
+                             param2=15, 
+                             minRadius=math.floor(image.shape[0] * 0.4), 
+                             maxRadius=math.ceil(image.shape[0] * 0.6))
+    if hough is not None:
+        min_length = 0.4 * image.shape[0]
+        max_length = 0.6 * image.shape[0]
+        for x , y , r in hough[0,:]:
+            if r > min_length and r < max_length and x > min_length and x < max_length and y > min_length and y < max_length:
+                return True
+    return False
 
-def findRect(sample):
-    _, contour , _ = cv2.findContours(sample, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if len(contour) == 0:
-        y, x = sample.shape
-        return np.float32([[0,0],[x-1,0],[x-1,y-1],[0,y-1]])
-    def getArea(attr):
-        return attr[2] * attr[3]
-    max_area_contour = max(contour , key=lambda c : getArea(cv2.boundingRect(c)))
-    hull = cv2.convexHull(max_area_contour)
-    poly = cv2.approxPolyDP(hull , 10 , True)
-    x, y, w, h = cv2.boundingRect(poly)
-    topleft = np.array([x,y])
-    topright = np.array([x+w , y])
-    bottomleft = np.array([x , y+h])
-    bottomright = np.array([x+w , y+h])
-    polyTopleft = min(poly, key=lambda i: np.sqrt(np.sum((topleft - i)**2)))
-    polyTopright = min(poly, key=lambda i: np.sqrt(np.sum((topright - i)**2)))
-    polyBottomleft = min(poly, key=lambda i: np.sqrt(np.sum((bottomleft - i)**2)))
-    polyBottomright = min(poly, key=lambda i: np.sqrt(np.sum((bottomright - i)**2)))
-    return np.float32([polyTopleft,polyTopright,polyBottomright,polyBottomleft])
-
-def getCropRect(sample):
+def findCircles(image, circularity_threshold = 0.95, r_weight = 0.33, g_weight = 0.33, b_weight = 0.33):
     '''
-    getCropRect(sample) -> rect, coordinate
-    
-    @param sample, 3 channels numpy array image
-    @return rect, 3 channels numpy array image which is cropped middle rectangle
+    image is bgr image
     '''
-    crop = cv2.cvtColor(sample, cv2.COLOR_RGB2GRAY)
-    _, crop = cv2.threshold(
-        cv2.GaussianBlur(
-            crop,(11,11),0
-        ),0,255,cv2.THRESH_BINARY +cv2.THRESH_OTSU
-    )
-    crop = cv2.morphologyEx(crop , cv2.MORPH_OPEN , cv2.getStructuringElement(cv2.MORPH_ELLIPSE , (15,15)))
-    pts1 = findRect(crop)
-    pts2 = np.float32([[0,0],[width,0],[width,height],[0,height]])
-    M = cv2.getPerspectiveTransform(pts1,pts2)
-    dst = cv2.warpPerspective(sample,M,(width,height))
-    return dst[25:height-25 , 50:width-50], pts1
+    # image = cv2.bitwise_not(image)
+    short_size = min(image.shape[0], image.shape[1])
+#     im = (image[:,:,2] // (1/r_weight) + image[:,:,1] // (1/g_weight) + image[:,:,0] // (1/b_weight)).astype(np.uint8)
+    gray_im = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    im = cv2.medianBlur(gray_im, min(math.ceil(short_size / 300), 3))
+    _, im = cv2.threshold(im, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    num_labels, labels_im, stats, centroids = cv2.connectedComponentsWithStats(im)
+    circles = []
 
-def findCircle(crop):
-    '''Finding circle function
-    findCircle(im) -> set
-    
-    @param crop, 3 channels numpy array image from getCropRect function
-    @return set, a set of (x,y,r) from the input image
-    '''
-    hough_set = set()
-    circle_width = (width-100)//3
-    for index , rang in enumerate([(0,circle_width) , (circle_width,circle_width*2) , (circle_width*2,circle_width*3)]):
-        p1 = crop[:,rang[0]:rang[1]]
-        hough = cv2.HoughCircles(cv2.cvtColor(p1 , cv2.COLOR_RGB2GRAY) , cv2.cv2.HOUGH_GRADIENT, 2, 400,
-                          param1=25,
-                          param2=15,
-                          minRadius=40,
-                          maxRadius=60)
-        if hough is not None:
-            for x , y , r in hough[0,:]:
-                hough_set.add((x+rang[0],y,r))
-    return hough_set
-
-def findCircle2(image):
-    hough = cv2.HoughCircles(cv2.cvtColor(image , cv2.COLOR_BGR2GRAY) , cv2.cv2.HOUGH_GRADIENT, 2, max(image.shape)//20,
-                          param1=50,
-                          param2=50,
-                          minRadius=35,
-                          maxRadius=60)
-    return set([(x,y,r) for (x,y,r) in hough[0,:]] if hough is not None else [])
+    for i in range(1, num_labels):
+        left, top, width, height, area = stats[i]
+        center_x, center_y = centroids[i]
+        circularity = max(width, height) / min(width, height)
+        r = min(width, height) // 2
+        if circularity > circularity_threshold and r > math.ceil(short_size/100) and validateCircle(gray_im[top: top+height, left: left+width]):
+            circles.append([center_x, center_y, r])
+    # for x, y, r in circles:
+    #     cv2.circle(im, (int(x),int(y)) , int(r) , (0,0,255) , 2)
+    # cv2.imshow('thresh', im)
+    return circles

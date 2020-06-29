@@ -1,6 +1,6 @@
 
 import cv2
-from crop import getCropRect, findCircle
+from crop import findCircles
 import numpy as np
 from config import segment_directory, image_directory
 from os import listdir, mkdir
@@ -8,17 +8,15 @@ from os.path import join, isdir
 from copy import deepcopy
 
 def drawCircles(img):
-    circles = findCircle(img)
+    circles = findCircles(img)
     for x ,y ,r in circles:
         cv2.circle(img , (int(x),int(y)) , int(r) , (0,0,255) , 2)
 
 def processFrame(bgrFrame):
-    rgb = cv2.cvtColor(bgrFrame, cv2.COLOR_BGR2RGB)
-    cropRect, coordinate = getCropRect(rgb)
-    cv2.polylines(bgrFrame, np.array([coordinate], dtype=np.int32), isClosed=True, color=(0,255,0), thickness=3)
-    drawCircles(cropRect)
-    bgr = cv2.cvtColor(cropRect, cv2.COLOR_RGB2BGR)
-    return bgr
+    ratio = 200 / bgrFrame.shape[1]
+    resized = cv2.resize(bgrFrame, (200, int(bgrFrame.shape[0] * ratio)))
+    drawCircles(resized)
+    return resized
 
 def saveImage(before, after):
     if not isdir(image_directory):

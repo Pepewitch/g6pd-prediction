@@ -1,4 +1,4 @@
-from crop import getCropRect, findCircle
+from crop import findCircles
 from summary import getInsideCircle, getOutsideCircles
 from os.path import join, dirname
 from os import getcwd
@@ -69,9 +69,8 @@ def drawText(img, text):
 
 def processFrame(bgrFrame):
     rgb = cv2.cvtColor(bgrFrame, cv2.COLOR_BGR2RGB)
-    cropRect, coordinate = getCropRect(rgb)
-    circles = findCircle(cropRect)
-    data = getData(cropRect, circles)
+    circles = findCircles(bgrFrame)
+    data = getData(bgrFrame, circles)
     ac = 0
     if len(data) > 0:
         ac = np.average(model.predict(data, selected_method, isRed))
@@ -96,9 +95,8 @@ def main():
     if args.image is not None:
         filepath = getFilepath(args.image)
         img = np.flip(imread(filepath), -1)
-        crop, _ = getCropRect(img)
-        circles = findCircle(crop)
-        data = getData(crop, circles)
+        circles = findCircles(img)
+        data = getData(img, circles)
         print(np.average(model.predict(data, selected_method, isRed)))
     else:
         openCamera(processFrame,piCamera)
